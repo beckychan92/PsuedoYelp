@@ -8,8 +8,9 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
+    var yelpSearchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
     var businesses: [Business]!
     
@@ -18,24 +19,27 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         
         tableView.delegate = self
         tableView.dataSource = self
+
         
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 120
         
-        Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
-            
-            self.businesses = businesses
-            self.tableView.reloadData()
-            
-            if let businesses = businesses {
-                for business in businesses {
-                    print(business.name!)
-                    print(business.address!)
-                }
-            }
-            
-            }
-        )
+        
+        
+ 
+        // create the search bar programatically since you won't be
+        // able to drag one onto the navigation bar
+        self.yelpSearchBar = UISearchBar()
+        self.yelpSearchBar.delegate = self
+        self.yelpSearchBar.sizeToFit()
+        
+        // the UIViewController comes with a navigationItem property
+        // this will automatically be initialized for you if when the
+        // view controller is added to a navigation controller's stack
+        // you just need to set the titleView to be the search bar
+        navigationItem.titleView = self.yelpSearchBar
+        
+        self.getThai()
         
         /* Example of Yelp search with more search options specified
          Business.searchWithTerm("Restaurants", sort: .Distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: NSError!) -> Void in
@@ -48,6 +52,23 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
          }
          */
         
+    }
+    
+    func getThai(){
+        Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
+            
+            self.businesses = businesses
+            self.tableView.reloadData()
+            
+            if let businesses = businesses {
+                for business in businesses {
+                    print(business.name!)
+                    print(business.address!)
+                }
+            }
+            
+        }
+        )
     }
     
     override func didReceiveMemoryWarning() {
@@ -72,6 +93,33 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         
         return cell
     }
+    
+    // This method updates filteredData based on the text in the Search Box
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // When there is no text, filteredData is the same as the original data
+        // When user has entered text into the search box
+        // Use the filter method to iterate over all items in the data array
+        // For each item, return true if the item should be included and false if the
+        // item should NOT be included
+        self.businesses = searchText.isEmpty ? businesses : businesses?.filter({ (dataString:Business) -> Bool in
+            // If dataItem matches the searchText, return true to include it
+            return dataString.name!.range(of: searchText, options: .caseInsensitive) != nil
+        })
+        
+        tableView.reloadData()
+    }
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        self.yelpSearchBar.showsCancelButton = true
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        self.yelpSearchBar.showsCancelButton = false
+        self.yelpSearchBar.text = ""
+        self.yelpSearchBar.resignFirstResponder()
+        self.getThai()
+    }
+    
     
     /*
      // MARK: - Navigation

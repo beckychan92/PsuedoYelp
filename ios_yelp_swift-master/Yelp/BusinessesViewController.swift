@@ -13,6 +13,8 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     var yelpSearchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
     var businesses: [Business]!
+    var filterbusinesses: [Business]!
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -58,6 +60,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
             
             self.businesses = businesses
+            self.filterbusinesses = self.businesses
             self.tableView.reloadData()
             
             if let businesses = businesses {
@@ -78,8 +81,8 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if self.businesses != nil {
-            return businesses.count
+        if self.filterbusinesses != nil {
+            return filterbusinesses.count
         }else{
             return 0
         }
@@ -89,7 +92,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         let cell = tableView.dequeueReusableCell(withIdentifier: "BusinessCell", for: indexPath) as! BusinessCell
         
         // Get the content for the cell
-        cell.business = self.businesses[indexPath.row]
+        cell.business = self.filterbusinesses[indexPath.row]
         
         return cell
     }
@@ -101,7 +104,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         // Use the filter method to iterate over all items in the data array
         // For each item, return true if the item should be included and false if the
         // item should NOT be included
-        self.businesses = searchText.isEmpty ? businesses : businesses?.filter({ (dataString:Business) -> Bool in
+        self.filterbusinesses = searchText.isEmpty ? businesses : businesses?.filter({ (dataString:Business) -> Bool in
             // If dataItem matches the searchText, return true to include it
             return dataString.name!.range(of: searchText, options: .caseInsensitive) != nil
         })
@@ -117,7 +120,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         self.yelpSearchBar.showsCancelButton = false
         self.yelpSearchBar.text = ""
         self.yelpSearchBar.resignFirstResponder()
-        self.getThai()
+//        self.getThai()
     }
     
     
